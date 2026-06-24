@@ -1,14 +1,17 @@
 'use strict';
 'use ui';
 
-var callInitAction = L.rpc.declare({
+var rpc = L.require('rpc');
+var form = L.require('form');
+
+var callInitAction = rpc.declare({
 	object: 'luci',
 	method: 'setInitAction',
 	params: [ 'name', 'action' ],
 	filter: function(res) { return res; }
 });
 
-var callServiceList = L.rpc.declare({
+var callServiceList = rpc.declare({
 	object: 'service',
 	method: 'list',
 	params: [ 'name' ],

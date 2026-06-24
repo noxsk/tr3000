@@ -95,7 +95,7 @@ start_service() {
 	if [ -x "/sbin/fw4" ]; then
 		# Firewall4 (nftables)
 		local zone=$(find_wan_zone "$wan_dev")
-		uci set firewall."${zone}".masquerade_v6='1'
+		uci set firewall."${zone}".masq6='1'
 		uci commit firewall
 		/etc/init.d/firewall reload
 	else
@@ -136,7 +136,7 @@ stop_service() {
 	if [ -x "/sbin/fw4" ]; then
 		# Firewall4 (nftables)
 		local zone=$(find_wan_zone "$wan_dev")
-		uci set firewall."${zone}".masquerade_v6='0'
+		uci set firewall."${zone}".masq6='0'
 		uci commit firewall
 		/etc/init.d/firewall reload
 	else
