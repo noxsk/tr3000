@@ -10,6 +10,7 @@ Here is the log of tasks completed by AI assistants in this workspace.
 
 | 日期 (Date) | 任务目标 (Goal) | 关联文件 (Related Files) | 状态 (Status) | 备注 (Notes) |
 | :--- | :--- | :--- | :--- | :--- |
+| 2026-06-25 | 定制 README 说明与仓库声明 | [README.md](file:///Users/noxsk/Git/tr3000/README.md) | ✅ Completed | 在 README.md 中标注为自用仓库，声明源码来自互联网，仅用于存档编译。 |
 | 2026-06-25 | 恢复 GitHub Actions 工作流文件 | [.github/workflows/openwrt-builder.yml](file:///Users/noxsk/Git/tr3000/.github/workflows/openwrt-builder.yml), [.github/workflows/update-checker.yml](file:///Users/noxsk/Git/tr3000/.github/workflows/update-checker.yml) | ✅ Completed | 从 P3TERX Actions-OpenWrt 模板恢复了 openwrt-builder.yml 和 update-checker.yml 并配置了自定义配置文件名。 |
 | 2026-06-25 | 启用 watchcat 断网重启插件 | [TR3000V1_MOD.config](file:///Users/noxsk/Git/tr3000/TR3000V1_MOD.config) | ✅ Completed | 启用了 `luci-app-watchcat` 网页端及其底层的断网检测重启守护程序 `watchcat`。 |
 | 2026-06-25 | 启用 mwan3helper 分流助手 | [TR3000V1_MOD.config](file:///Users/noxsk/Git/tr3000/TR3000V1_MOD.config) | ✅ Completed | 启用了 `luci-app-mwan3helper-chinaroute` 插件。 |
@@ -32,6 +33,14 @@ Here is the log of tasks completed by AI assistants in this workspace.
 
 <details>
 <summary>🔍 <b>展开/折叠详细日志记录 (Detailed Session Details)</b></summary>
+
+### 📝 Session: 2026-06-25 (定制 README 说明)
+* **目标**: 更新 [README.md](file:///Users/noxsk/Git/tr3000/README.md) 描述，规范自用存档声明并指向实际的 GitHub 仓库地址。
+* **修改内容**:
+  * 修改 [README.md](file:///Users/noxsk/Git/tr3000/README.md)：
+    * 更新仓库的 badges 指向 `https://github.com/noxsk/tr3000`。
+    * 添加自用声明：“本项目为自用仓库，源码来自互联网（基于 Lean 的 OpenWrt 源码及 P3TERX 的 Actions-OpenWrt 编译模板），仅用于存档与 GitHub Actions 固件云端云编译。”
+* **成果**: README 内容规范化，并清楚定义了仓库属性和使用目的。
 
 ### 📝 Session: 2026-06-25 (恢复 Actions 工作流)
 * **目标**: 恢复并适配 GitHub Actions 自动化云编译所需的工作流文件。
@@ -219,6 +228,7 @@ All firmware configurations, custom scripts, and workflow modifications are docu
 - 新增 AI 协作日志记录文件 [agy.md](file:///Users/noxsk/Git/tr3000/agy.md)。
 
 #### Changed
+- 更新了 [README.md](file:///Users/noxsk/Git/tr3000/README.md) 说明，声明为自用仓库并且源码来自互联网，仅用于存档编译。
 - 自定义了设备 LED 的默认启动行为（电源红灯常亮，状态白灯在局域网有网络数据时闪烁；在 [diy-part2.sh](file:///Users/noxsk/Git/tr3000/diy-part2.sh) 中以 Python 脚本处理）。
 - 将默认 NTP 时间同步服务器修改为国内及苹果的 NTP 组（在 [diy-part2.sh](file:///Users/noxsk/Git/tr3000/diy-part2.sh) 中以 Python 脚本处理）。
 - 将默认网页后台主题由 Bootstrap 更换为 Argon (`luci-theme-argon`)（在 [TR3000V1_MOD.config](file:///Users/noxsk/Git/tr3000/TR3000V1_MOD.config) 和 [diy-part2.sh](file:///Users/noxsk/Git/tr3000/diy-part2.sh) 中配置）。
