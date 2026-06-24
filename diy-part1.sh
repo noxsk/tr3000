@@ -20,4 +20,4 @@ echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.defau
 # Clone custom packages
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/luci-app-netspeedtest
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
-git clone --depth=1 https://github.com/miao1007/openwrt-dogcom package/openwrt-dogcom
+git clone --depth=1 https://github.com/mchome/openwrt-dogcom package/openwrt-dogcom
