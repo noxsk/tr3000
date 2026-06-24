@@ -1,0 +1,12 @@
+{
+	"luci-app-nat66": {
+		"description": "Grant access to nat66 config and service",
+		"read": {
+			"uci": [ "nat66" ]
+		},
+		"write": {
+			"uci": [ "nat66" ],
+			"luci": [ "setInitAction" ]
+		}
+	}
+}

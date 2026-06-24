@@ -1,0 +1,153 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+USE_PROCD=1
+
+# Helper to find WAN device
+get_wan_device() {
+	local wan_dev=$(uci -q get nat66.config.wan_dev || echo "wan")
+	local dev
+	
+	# Try ubus first (modern OpenWrt standard)
+	dev=$(ubus call network.interface."${wan_dev}" status 2>/dev/null | jsonfilter -e '@.l3_device')
+	
+	if [ -z "$dev" ]; then
+		# Try network config
+		dev=$(uci -q get network."${wan_dev}".device || uci -q get network."${wan_dev}".ifname)
+	fi
+	
+	if [ -z "$dev" ] && [ "$wan_dev" = "wan" ]; then
+		# Try wan6 if wan failed
+		dev=$(ubus call network.interface.wan6 status 2>/dev/null | jsonfilter -e '@.l3_device')
+		[ -z "$dev" ] && dev=$(uci -q get network.wan6.device || uci -q get network.wan6.ifname)
+	fi
+	
+	# Fallback
+	[ -z "$dev" ] && dev="eth1"
+	echo "$dev"
+}
+
+# Helper to find firewall zone corresponding to the WAN network
+find_wan_zone() {
+	. /lib/functions.sh
+	local network="$1"
+	local found_zone=""
+	
+	filter_zone() {
+		local cfg="$1"
+		local name
+		local nets
+		config_get name "$cfg" name
+		config_get nets "$cfg" network
+		
+		for net in $nets; do
+			if [ "$net" = "$network" ]; then
+				found_zone="$cfg"
+				return
+			fi
+		done
+		
+		if [ "$name" = "$network" ]; then
+			found_zone="$cfg"
+			return
+		fi
+	}
+	
+	config_load firewall
+	config_foreach filter_zone zone
+	
+	# Fallback: if network is wan, try wan6
+	if [ -z "$found_zone" ] && [ "$network" = "wan" ]; then
+		network="wan6"
+		config_foreach filter_zone zone
+	fi
+	
+	# Ultimate fallback
+	echo "${found_zone:-wan}"
+}
+
+start_service() {
+	local enabled=$(uci -q get nat66.config.enabled || echo "0")
+	[ "$enabled" -eq 1 ] || return 0
+
+	# 1. Ensure ULA Prefix exists on LAN (required for NAT66)
+	local ula=$(uci -q get network.globals.ula_prefix)
+	if [ -z "$ula" ]; then
+		local r1=$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"')
+		local r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')
+		local r3=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')
+		uci set network.globals.ula_prefix="fd${r1}:${r2}:${r3}::/48"
+		uci commit network
+		/etc/init.d/network reload
+	fi
+
+	# 2. Configure odhcpd LAN settings
+	uci set dhcp.lan.ra='server'
+	uci set dhcp.lan.ra_default='1'
+	uci set dhcp.lan.ra_management='1'
+	uci commit dhcp
+	/etc/init.d/odhcpd restart
+
+	# 3. Configure Firewall NAT66
+	local wan_dev=$(uci -q get nat66.config.wan_dev || echo "wan")
+	local wan_device=$(get_wan_device)
+	
+	if [ -x "/sbin/fw4" ]; then
+		# Firewall4 (nftables)
+		local zone=$(find_wan_zone "$wan_dev")
+		uci set firewall."${zone}".masquerade_v6='1'
+		uci commit firewall
+		/etc/init.d/firewall reload
+	else
+		# Firewall3 (iptables)
+		# Add to running iptables rules
+		ip6tables -t nat -C POSTROUTING -o "$wan_device" -j MASQUERADE 2>/dev/null || \
+			ip6tables -t nat -I POSTROUTING -o "$wan_device" -j MASQUERADE
+
+		# Add to firewall.user to persist
+		if [ -f "/etc/firewall.user" ]; then
+			# Clean old block first to avoid duplicates
+			sed -i '/# NAT66 Start/,/# NAT66 End/d' /etc/firewall.user
+			
+			# Append dynamic block
+			cat << 'EOF' >> /etc/firewall.user
+# NAT66 Start
+wan_device=$(uci -q get nat66.config.wan_dev || echo "wan")
+dev=$(ubus call network.interface."$wan_device" status 2>/dev/null | jsonfilter -e '@.l3_device' || uci -q get network."$wan_device".device || uci -q get network."$wan_device".ifname || echo "eth1")
+ip6tables -t nat -C POSTROUTING -o "$dev" -j MASQUERADE 2>/dev/null || ip6tables -t nat -I POSTROUTING -o "$dev" -j MASQUERADE
+# NAT66 End
+EOF
+		fi
+		/etc/init.d/firewall reload
+	fi
+}
+
+stop_service() {
+	# 1. Restore DHCP settings
+	uci set dhcp.lan.ra_default='0'
+	uci set dhcp.lan.ra_management='0'
+	uci commit dhcp
+	/etc/init.d/odhcpd restart
+
+	# 2. Restore Firewall settings
+	local wan_dev=$(uci -q get nat66.config.wan_dev || echo "wan")
+	local wan_device=$(get_wan_device)
+
+	if [ -x "/sbin/fw4" ]; then
+		# Firewall4 (nftables)
+		local zone=$(find_wan_zone "$wan_dev")
+		uci set firewall."${zone}".masquerade_v6='0'
+		uci commit firewall
+		/etc/init.d/firewall reload
+	else
+		# Firewall3 (iptables)
+		# Remove running iptables rules
+		ip6tables -t nat -D POSTROUTING -o "$wan_device" -j MASQUERADE 2>/dev/null
+
+		# Remove block from firewall.user
+		if [ -f "/etc/firewall.user" ]; then
+			sed -i '/# NAT66 Start/,/# NAT66 End/d' /etc/firewall.user
+		fi
+		/etc/init.d/firewall reload
+	fi
+}

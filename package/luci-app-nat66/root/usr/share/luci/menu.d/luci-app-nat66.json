@@ -1,0 +1,11 @@
+{
+	"admin/network/nat66": {
+		"title": "NAT66 Configuration",
+		"action": {
+			"type": "view",
+			"path": "nat66"
+		},
+		"order": 60,
+		"dependent": true
+	}
+}

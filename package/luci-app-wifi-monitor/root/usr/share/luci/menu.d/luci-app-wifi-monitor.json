@@ -1,0 +1,11 @@
+{
+	"admin/network/wifi_monitor": {
+		"title": "Wi-Fi Monitor",
+		"action": {
+			"type": "view",
+			"path": "wifi-monitor"
+		},
+		"order": 70,
+		"dependent": true
+	}
+}
