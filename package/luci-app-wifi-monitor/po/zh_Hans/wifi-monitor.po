@@ -1,0 +1,68 @@
+msgid "Wi-Fi Monitor"
+msgstr "Wi-Fi 监控"
+
+msgid "Wi-Fi Channel Monitor & Sync"
+msgstr "Wi-Fi 信道监控与同步"
+
+msgid "Monitors wireless interfaces in dual STA/AP modes to keep the local AP alive and sync channels when the upstream channel drifts."
+msgstr "监控双 STA/AP 模式下的无线接口，在上游信道漂移时保持本地 AP 存活并同步信道。"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Enable Monitor"
+msgstr "启用监控"
+
+msgid "Target Wireless Radio"
+msgstr "目标无线网卡"
+
+msgid "Select the physical radio to monitor. Both STA and AP must be on this radio."
+msgstr "选择要监控的物理无线网卡。STA 和 AP 必须都在此网卡上。"
+
+msgid "Check Interval (seconds)"
+msgstr "检查间隔 (秒)"
+
+msgid "How frequently to check connection status."
+msgstr "检查连接状态的频率。"
+
+msgid "10 seconds"
+msgstr "10 秒"
+
+msgid "30 seconds (Recommended)"
+msgstr "30 秒 (推荐)"
+
+msgid "1 minute"
+msgstr "1 分钟"
+
+msgid "2 minutes"
+msgstr "2 分钟"
+
+msgid "Disable AP during scan"
+msgstr "扫描时禁用 AP"
+
+msgid "Temporarily disable local AP interfaces to ensure clean scanning. Only enable this if scanning fails on your wireless driver."
+msgstr "临时禁用本地 AP 接口以确保扫描干净。只有当您的无线驱动程序上扫描失败时才启用此项。"
+
+msgid "Log Level"
+msgstr "日志级别"
+
+msgid "Quiet"
+msgstr "安静"
+
+msgid "Standard"
+msgstr "标准"
+
+msgid "Verbose / Debug"
+msgstr "详细 / 调试"
+
+msgid "Service Status"
+msgstr "服务状态"
+
+msgid "Running State"
+msgstr "运行状态"
+
+msgid "Active (Monitoring)"
+msgstr "运行中 (监控中)"
+
+msgid "Inactive (Stopped)"
+msgstr "已停止"

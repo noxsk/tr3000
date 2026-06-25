@@ -1,0 +1,17 @@
+msgid "NAT66 Configuration"
+msgstr "NAT66 配置"
+
+msgid "Quickly configure IPv6 NAT (NAT66) and resolve routing advertisement gateway issues."
+msgstr "快速配置 IPv6 NAT (NAT66) 并解决路由宣告网关问题。"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Enable NAT66"
+msgstr "启用 NAT66"
+
+msgid "WAN Interface"
+msgstr "WAN 接口"
+
+msgid "Select the WAN interface for IPv6 NAT (e.g. wan, wan6, pppoe-wan)"
+msgstr "选择用于 IPv6 NAT 的 WAN 接口（例如 wan、wan6、pppoe-wan）"
