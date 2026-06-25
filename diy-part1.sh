@@ -21,3 +21,9 @@ echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.defau
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest package/luci-app-netspeedtest
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/mchome/openwrt-dogcom package/openwrt-dogcom
+
+# 复制本仓库自带的自定义插件到 OpenWrt 编译目录
+if [ -d "$GITHUB_WORKSPACE/package" ]; then
+	cp -r "$GITHUB_WORKSPACE/package"/* package/
+fi
+
