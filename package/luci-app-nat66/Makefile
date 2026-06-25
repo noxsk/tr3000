@@ -9,6 +9,8 @@ PKG_MAINTAINER:=Antigravity AI
 
 include $(INCLUDE_DIR)/package.mk
 
+PKG_BUILD_DEPENDS:=luci-base/host
+
 define Package/luci-app-nat66
   SECTION:=luci
   CATEGORY:=LuCI
@@ -23,7 +25,8 @@ define Package/luci-app-nat66/description
 endef
 
 define Build/Compile
-	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(PKG_BUILD_DIR)/nat66.zh-cn.lmo
+	mkdir -p $(PKG_BUILD_DIR)
+	-$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(PKG_BUILD_DIR)/nat66.zh-cn.lmo
 endef
 
 define Package/luci-app-nat66/install
