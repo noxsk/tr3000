@@ -1,8 +1,7 @@
 'use strict';
-'use ui';
-
-var rpc = L.require('rpc');
-var form = L.require('form');
+'require view';
+'require form';
+'require rpc';
 
 var callInitAction = rpc.declare({
 	object: 'luci',
@@ -11,7 +10,7 @@ var callInitAction = rpc.declare({
 	filter: function(res) { return res; }
 });
 
-return L.view.extend({
+return view.extend({
 	render: function() {
 		var m, s, o;
 

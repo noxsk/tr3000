@@ -1,8 +1,9 @@
 'use strict';
-'use ui';
-
-var rpc = L.require('rpc');
-var form = L.require('form');
+'require view';
+'require form';
+'require rpc';
+'require uci';
+'require dom';
 
 var callInitAction = rpc.declare({
 	object: 'luci',
@@ -18,11 +19,11 @@ var callServiceList = rpc.declare({
 	filter: function(res) { return res; }
 });
 
-return L.view.extend({
+return view.extend({
 	load: function() {
 		return Promise.all([
-			L.uci.load('wifi-monitor'),
-			L.uci.load('wireless'),
+			uci.load('wifi-monitor'),
+			uci.load('wireless'),
 			callServiceList('wifi-monitor').then(function(res) {
 				try {
 					return res['wifi-monitor'] && res['wifi-monitor']['instances'] && res['wifi-monitor']['instances']['main'] && res['wifi-monitor']['instances']['main']['running'];
@@ -54,7 +55,7 @@ return L.view.extend({
 		o.default = 'radio0';
 		
 		// Populate radio options dynamically from wireless configuration
-		var radios = L.uci.sections('wireless', 'wifi-device');
+		var radios = uci.sections('wireless', 'wifi-device');
 		if (radios && radios.length > 0) {
 			radios.forEach(function(r) {
 				o.value(r['.name']);
@@ -86,7 +87,7 @@ return L.view.extend({
 
 		// Prepend a beautiful custom status card at the top of the map
 		return m.render().then(function(mapNode) {
-			var styleNode = E('style', {},
+			var styleNode = dom.create('style', {},
 				'@keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
 				'.monitor-status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }' +
 				'.monitor-status-badge.running { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }' +
@@ -96,14 +97,14 @@ return L.view.extend({
 				'.monitor-dot.stopped { background-color: #ef4444; }'
 			);
 
-			var statusNode = E('div', { 'class': 'cbi-section' }, [
-				E('legend', {}, _('Service Status')),
-				E('div', { 'class': 'cbi-value' }, [
-					E('label', { 'class': 'cbi-value-title' }, _('Running State')),
-					E('div', { 'class': 'cbi-value-field' }, [
-						E('div', { 'class': 'monitor-status-badge ' + (isRunning ? 'running' : 'stopped') }, [
-							E('span', { 'class': 'monitor-dot ' + (isRunning ? 'running' : 'stopped') }),
-							E('span', {}, isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)'))
+			var statusNode = dom.create('div', { 'class': 'cbi-section' }, [
+				dom.create('legend', {}, _('Service Status')),
+				dom.create('div', { 'class': 'cbi-value' }, [
+					dom.create('label', { 'class': 'cbi-value-title' }, _('Running State')),
+					dom.create('div', { 'class': 'cbi-value-field' }, [
+						dom.create('div', { 'class': 'monitor-status-badge ' + (isRunning ? 'running' : 'stopped') }, [
+							dom.create('span', { 'class': 'monitor-dot ' + (isRunning ? 'running' : 'stopped') }),
+							dom.create('span', {}, isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)'))
 						])
 					])
 				])
