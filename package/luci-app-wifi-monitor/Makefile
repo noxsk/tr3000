@@ -25,8 +25,6 @@ define Package/luci-app-wifi-monitor/description
 endef
 
 define Build/Compile
-	mkdir -p $(PKG_BUILD_DIR)
-	-$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/wifi-monitor.po $(PKG_BUILD_DIR)/wifi-monitor.zh-cn.lmo
 endef
 
 define Package/luci-app-wifi-monitor/install
@@ -43,7 +41,8 @@ define Package/luci-app-wifi-monitor/install
 	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-wifi-monitor.json $(1)/usr/share/luci/menu.d/luci-app-wifi-monitor.json
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-wifi-monitor.json $(1)/usr/share/rpcd/acl.d/luci-app-wifi-monitor.json
 	$(INSTALL_DATA) ./root/www/luci-static/resources/view/wifi-monitor.js $(1)/www/luci-static/resources/view/wifi-monitor.js
-	-$(CP) $(PKG_BUILD_DIR)/wifi-monitor.zh-cn.lmo $(1)/usr/lib/lua/luci/i18n/wifi-monitor.zh-cn.lmo
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/wifi-monitor.po $(1)/usr/lib/lua/luci/i18n/wifi-monitor.zh-cn.lmo
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/wifi-monitor.po $(1)/usr/lib/lua/luci/i18n/wifi-monitor.zh_Hans.lmo
 endef
 
 $(eval $(call BuildPackage,luci-app-wifi-monitor))

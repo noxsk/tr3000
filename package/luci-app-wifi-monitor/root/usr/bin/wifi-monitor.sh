@@ -87,19 +87,19 @@ while true; do
 	fi
 
 	# 1. Check link status of STA
-	local ap_mac=$(iwinfo "$sta_ifname" info 2>/dev/null | grep "Access Point:" | awk '{print $3}')
-	local is_connected=0
+	ap_mac=$(iwinfo "$sta_ifname" info 2>/dev/null | grep "Access Point:" | awk '{print $3}')
+	is_connected=0
 	if [ -n "$ap_mac" ] && [ "$ap_mac" != "00:00:00:00:00:00" ] && [ "$ap_mac" != "Not-Associated" ]; then
 		is_connected=1
 	fi
 
 	if [ "$is_connected" -eq 1 ]; then
 		# SCENARIO B: STA is connected. Verify channel alignment and AP health.
-		local actual_chan=$(iwinfo "$sta_ifname" info 2>/dev/null | grep -i "Channel:" | sed -n 's/.*Channel: \([0-9]*\).*/\1/p')
-		local configured_chan=$(uci -q get wireless."$radio".channel || echo "auto")
+		actual_chan=$(iwinfo "$sta_ifname" info 2>/dev/null | grep -i "Channel:" | sed -n 's/.*Channel: \([0-9]*\).*/\1/p')
+		configured_chan=$(uci -q get wireless."$radio".channel || echo "auto")
 
 		# Check if local AP interfaces are up
-		local ap_down=0
+		ap_down=0
 		for ap_cfg in $ap_cfg_ids; do
 			if ! is_iface_up "$radio" "$ap_cfg"; then
 				ap_down=1
@@ -139,7 +139,7 @@ while true; do
 		fi
 
 		# 2. Perform scan to find the upstream channel
-		local scan_results=""
+		scan_results=""
 		if [ -n "$sta_ifname" ]; then
 			log 2 "Scanning for upstream AP (SSID: $ssid, BSSID: $bssid) on $sta_ifname..."
 			scan_results=$(iwinfo "$sta_ifname" scan 2>/dev/null)
@@ -147,7 +147,7 @@ while true; do
 			log 1 "STA interface is down or not created yet. Skipping scan."
 		fi
 
-		local target_chan=$(echo "$scan_results" | awk -v bssid="$bssid" -v ssid="$ssid" '
+		target_chan=$(echo "$scan_results" | awk -v bssid="$bssid" -v ssid="$ssid" '
 			tolower($0) ~ /address:/ { 
 				mac = tolower($NF)
 			}
@@ -183,7 +183,7 @@ while true; do
 		fi
 
 		if [ -n "$target_chan" ]; then
-			local cur_chan=$(uci -q get wireless."$radio".channel || echo "auto")
+			cur_chan=$(uci -q get wireless."$radio".channel || echo "auto")
 			if [ "$cur_chan" != "$target_chan" ] || [ "$scan_disable_ap" -eq 1 ]; then
 				log 1 "Upstream AP found on channel $target_chan (currently configured: $cur_chan). Syncing radio channel..."
 				uci set wireless."$radio".channel="$target_chan"
