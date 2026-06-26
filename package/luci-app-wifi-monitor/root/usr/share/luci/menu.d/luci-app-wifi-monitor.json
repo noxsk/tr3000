@@ -1,5 +1,5 @@
 {
-	"admin/network/wifi_monitor": {
+	"admin/network/wifi-monitor": {
 		"title": "Wi-Fi Monitor",
 		"action": {
 			"type": "view",

@@ -7,9 +7,9 @@ PKG_RELEASE:=1
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=Antigravity AI
 
-include $(INCLUDE_DIR)/package.mk
-
 PKG_BUILD_DEPENDS:=luci-base/host
+
+include $(INCLUDE_DIR)/package.mk
 
 define Package/luci-app-nat66
   SECTION:=luci
@@ -25,6 +25,9 @@ define Package/luci-app-nat66/description
 endef
 
 define Build/Compile
+	mkdir -p $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(PKG_BUILD_DIR)/nat66.zh-cn.lmo
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(PKG_BUILD_DIR)/nat66.zh-hans.lmo
 endef
 
 define Package/luci-app-nat66/install
@@ -39,8 +42,8 @@ define Package/luci-app-nat66/install
 	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-nat66.json $(1)/usr/share/luci/menu.d/luci-app-nat66.json
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-nat66.json $(1)/usr/share/rpcd/acl.d/luci-app-nat66.json
 	$(INSTALL_DATA) ./root/www/luci-static/resources/view/nat66.js $(1)/www/luci-static/resources/view/nat66.js
-	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh-cn.lmo
-	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh_Hans.lmo
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/nat66.zh-cn.lmo $(1)/usr/lib/lua/luci/i18n/nat66.zh-cn.lmo
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/nat66.zh-hans.lmo $(1)/usr/lib/lua/luci/i18n/nat66.zh-hans.lmo
 endef
 
 $(eval $(call BuildPackage,luci-app-nat66))

@@ -57,6 +57,3 @@ config led 'status_led'
 
 # 修复 Rust 编译失败：强制关闭 download-ci-llvm
 sed -i 's/$(TARGET_CONFIGURE_ARGS)/--set llvm.download-ci-llvm=false \\\n\t$(TARGET_CONFIGURE_ARGS)/' feeds/packages/lang/rust/Makefile
-
-# 启用 ccache 编译缓存以加速后续编译
-echo "CONFIG_CCACHE=y" >> .config

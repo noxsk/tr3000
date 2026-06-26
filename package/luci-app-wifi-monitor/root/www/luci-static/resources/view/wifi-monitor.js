@@ -3,7 +3,6 @@
 'require form';
 'require rpc';
 'require uci';
-'require dom';
 
 var callInitAction = rpc.declare({
 	object: 'luci',
@@ -87,7 +86,7 @@ return view.extend({
 
 		// Prepend a beautiful custom status card at the top of the map
 		return m.render().then(function(mapNode) {
-			var styleNode = dom.create('style', {},
+			var styleNode = E('style', {},
 				'@keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
 				'.monitor-status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }' +
 				'.monitor-status-badge.running { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }' +
@@ -97,14 +96,14 @@ return view.extend({
 				'.monitor-dot.stopped { background-color: #ef4444; }'
 			);
 
-			var statusNode = dom.create('div', { 'class': 'cbi-section' }, [
-				dom.create('legend', {}, _('Service Status')),
-				dom.create('div', { 'class': 'cbi-value' }, [
-					dom.create('label', { 'class': 'cbi-value-title' }, _('Running State')),
-					dom.create('div', { 'class': 'cbi-value-field' }, [
-						dom.create('div', { 'class': 'monitor-status-badge ' + (isRunning ? 'running' : 'stopped') }, [
-							dom.create('span', { 'class': 'monitor-dot ' + (isRunning ? 'running' : 'stopped') }),
-							dom.create('span', {}, isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)'))
+			var statusNode = E('div', { 'class': 'cbi-section' }, [
+				E('legend', {}, _('Service Status')),
+				E('div', { 'class': 'cbi-value' }, [
+					E('label', { 'class': 'cbi-value-title' }, _('Running State')),
+					E('div', { 'class': 'cbi-value-field' }, [
+						E('div', { 'class': 'monitor-status-badge ' + (isRunning ? 'running' : 'stopped') }, [
+							E('span', { 'class': 'monitor-dot ' + (isRunning ? 'running' : 'stopped') }),
+							E('span', {}, isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)'))
 						])
 					])
 				])
