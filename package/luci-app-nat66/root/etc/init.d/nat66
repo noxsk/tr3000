@@ -3,6 +3,8 @@
 START=99
 USE_PROCD=1
 
+. /lib/functions.sh
+
 # Helper to find WAN device
 get_wan_device() {
 	local wan_dev=$(uci -q get nat66.config.wan_dev || echo "wan")
@@ -29,7 +31,6 @@ get_wan_device() {
 
 # Helper to find firewall zone corresponding to the WAN network
 find_wan_zone() {
-	. /lib/functions.sh
 	local network="$1"
 	local found_zone=""
 	
@@ -73,9 +74,9 @@ start_service() {
 	# 1. Ensure ULA Prefix exists on LAN (required for NAT66)
 	local ula=$(uci -q get network.globals.ula_prefix)
 	if [ -z "$ula" ]; then
-		local r1=$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"')
-		local r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')
-		local r3=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')
+		local r1=$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+		local r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+		local r3=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
 		uci set network.globals.ula_prefix="fd${r1}:${r2}:${r3}::/48"
 		uci commit network
 		/etc/init.d/network reload

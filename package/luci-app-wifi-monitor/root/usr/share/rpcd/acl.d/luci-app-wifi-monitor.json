@@ -5,6 +5,7 @@
 			"uci": [ "wifi-monitor", "wireless" ],
 			"ubus": {
 				"network.interface": [ "status" ],
+				"network.wireless": [ "status" ],
 				"iwinfo": [ "scan", "info" ],
 				"service": [ "list" ]
 			}
