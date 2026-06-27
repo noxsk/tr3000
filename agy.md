@@ -11,6 +11,7 @@ Here is the log of tasks completed by AI assistants in this workspace.
 | 日期 (Date) | 任务目标 (Goal) | 关联文件 (Related Files) | 状态 (Status) | 备注 (Notes) |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-06-28 | 修复 luci-app-nat66/wifi-monitor po2lmo 编译错误 | [package/luci-app-nat66/Makefile](file:///Users/noxsk/Git/tr3000/package/luci-app-nat66/Makefile), [package/luci-app-wifi-monitor/Makefile](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/Makefile) | ✅ Completed | 移除无效 PKG_BUILD_DEPENDS, po2lmo 从 Build/Compile 移到 Package/install 直接用命令(不走硬路径)。 |
+| 2026-06-28 | 加固 wifi-monitor/nat66 插件鲁棒性 | [wifi-monitor.sh](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/root/usr/bin/wifi-monitor.sh), [nat66 init](file:///Users/noxsk/Git/tr3000/package/luci-app-nat66/root/etc/init.d/nat66), [wifi-monitor init](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/root/etc/init.d/wifi-monitor), [wifi-monitor.js](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/root/www/luci-static/resources/view/wifi-monitor.js) | ✅ Completed | 14项修复: ash 兼容性/local 关键字、interval 边界防死循环、EXIT trap 防 AP 永久禁用、ubus 缓存 O(N)->O(1)、信道同步减冗余 commit、sleep 信号安全、nat66 幂等/ULA 回退/firewall.user 查重/eth1 探针/stop 守卫、procd crash 限制、状态指示去按钮化。 |
 | 2026-06-28 | 重写 wifi-monitor.sh 修复多 STA 冲突、信道循环 reload | [package/luci-app-wifi-monitor/root/usr/bin/wifi-monitor.sh](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/root/usr/bin/wifi-monitor.sh) | ✅ Completed | 新增 safe_reload 冷却、多 STA 警告、AP 健康时静默同步信道不 reload、追踪全部 STA。 |
 | 2026-06-28 | wifi-monitor 新增 sta 选项指定监控特定 STA | [package/luci-app-wifi-monitor/](file:///Users/noxsk/Git/tr3000/package/luci-app-wifi-monitor/) (config/sh/JS/PO) | ✅ Completed | 配置/LuCI 新增 sta 下拉菜单, 指定后只监控该 STA, 其他 STA(如 mwan3 聚合)不受影响。 |
 | 2026-06-25 | 修改自动编译为每日5点 | [.github/workflows/openwrt-builder.yml](file:///Users/noxsk/Git/tr3000/.github/workflows/openwrt-builder.yml) | ✅ Completed | 在 openwrt-builder.yml 中添加了 cron 定时任务触发器（设定为北京时间每日早5点/UTC时间前一日晚21点）。 |
@@ -37,6 +38,28 @@ Here is the log of tasks completed by AI assistants in this workspace.
 
 <details>
 <summary>🔍 <b>展开/折叠详细日志记录 (Detailed Session Details)</b></summary>
+
+### 📝 Session: 2026-06-28 (加固插件鲁棒性 — commit 618c7f6)
+
+- **目标**: 根据 agy.md 历史记录中暴露的问题, 系统性加固 wifi-monitor 和 nat66 两个自定义插件。
+- **涉及文件**: `wifi-monitor.sh`, `nat66 init`, `wifi-monitor init`, `wifi-monitor.js` (4 files, +96/-31)
+- **wifi-monitor.sh 六项修复**:
+  - 移除循环体内 `local` 关键字 (busybox ash 仅在 function 内有效)。
+  - `interval` 增加 [5s, 3600s] 边界检查, 防止用户误设 0 导致死循环。
+  - 新增 EXIT trap: `scan_disable_ap` 期间若脚本崩溃/被 kill, 自动恢复 AP 接口 (防止 AP 永久禁用)。
+  - 每轮循环缓存 `ubus call network.wireless status` 一次, `get_ifname()`/`is_iface_up()` 复用缓存 (减少 O(N) 次 ubus 调用)。
+  - AP 宕机恢复路径增加信道比较, 仅在信道确实变化时才 `uci commit` (减少 SPI NOR 闪存擦写)。
+  - 所有 `sleep` 改为 `sleep "$interval" & wait $!` 信号安全模式。
+- **nat66 init 五项修复**:
+  - `start_service()` 增加幂等性检查 (`ra_default` 已为 1 则直接返回)。
+  - ULA 前缀生成增加 `/dev/urandom` 缺失时的确定性回退值 (防 `fd:::/48` 非法前缀)。
+  - `firewall.user` 追加前 `grep -qF` 查重, 防止并发 start 产生重复块。
+  - `get_wan_device()` 用 `/sys/class/net/` 探针替代硬编码 `eth1`。
+  - `stop_service()` 仅在 `ra_default=1` (确实 start 过) 时才执行清理。
+- **wifi-monitor init 一项修复**:
+  - `procd respawn` 增加 crash 阈值: `respawn 3600 5 10` (1 小时内最多 10 次崩溃)。
+- **wifi-monitor.js 一项修复**:
+  - 状态指示器去按钮化: 移除 `border-radius`/`padding`/`border`/背景色 pill 形状, 改为纯文本+彩色圆点 (active: 绿色 pulse, inactive: 红色 static)。keyframe 名限定为 `wifimon-pulse` 避免主题冲突。
 
 ### 📝 Session: 2026-06-28 (修复 po2lmo 编译错误 — commit 74e30b1)
 
