@@ -1,0 +1,64 @@
+#
+# Workflow: 仅编译 luci-app-nat66 插件
+# 触发: 手动 或 push 到 package/luci-app-nat66/**
+#
+
+name: Build luci-app-nat66
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'package/luci-app-nat66/**'
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y build-essential gawk gettext libncurses5-dev \
+          libssl-dev unzip zlib1g-dev wget python3 file
+
+    - name: Clone OpenWrt source
+      run: |
+        git clone $REPO_URL -b $REPO_BRANCH --depth=1 openwrt
+        cp -r "$GITHUB_WORKSPACE/package/luci-app-nat66" openwrt/package/
+
+    - name: Update & install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Setup minimal config
+      run: |
+        cd openwrt
+        cat > .config << 'ENDCONFIG'
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_filogic=y
+CONFIG_TARGET_mediatek_filogic_DEVICE_cudy_tr3000-v1-ubootmod=y
+CONFIG_PACKAGE_luci-app-nat66=y
+ENDCONFIG
+        make defconfig
+
+    - name: Compile luci-app-nat66
+      run: |
+        cd openwrt
+        make package/luci-app-nat66/compile V=s -j$(nproc)
+
+    - name: Upload .ipk artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: luci-app-nat66
+        path: openwrt/bin/packages/*/base/luci-app-nat66*.ipk
+        if-no-files-found: error
