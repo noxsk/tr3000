@@ -52,7 +52,7 @@ return view.extend({
 		o = s.option(form.ListValue, 'radio', _('Target Wireless Radio'), _('Select the physical radio to monitor. Both STA and AP must be on this radio.'));
 		o.rmempty = false;
 		o.default = 'radio0';
-		
+
 		// Populate radio options dynamically from wireless configuration
 		var radios = uci.sections('wireless', 'wifi-device');
 		if (radios && radios.length > 0) {
@@ -61,6 +61,22 @@ return view.extend({
 			});
 		} else {
 			o.value('radio0', 'radio0');
+		}
+
+		o = s.option(form.ListValue, 'sta', _('Monitored STA Interface'),
+			_('Select which STA (Client) interface to monitor. Leave empty for auto-detect (first connected). Use this when you have multiple STA interfaces on the same radio, e.g. for mwan3 link aggregation.'));
+		o.rmempty = true;
+		o.default = '';
+		o.value('', _('Auto-detect (first connected)'));
+
+		// Populate STA options dynamically from wireless configuration
+		var stas = uci.sections('wireless', 'wifi-iface');
+		if (stas && stas.length > 0) {
+			stas.forEach(function(s) {
+				if (s.mode === 'sta') {
+					o.value(s['.name'], s['.name'] + (s.ssid ? ' (SSID: ' + s.ssid + ')' : ''));
+				}
+			});
 		}
 
 		o = s.option(form.Value, 'interval', _('Check Interval (seconds)'), _('How frequently to check connection status.'));

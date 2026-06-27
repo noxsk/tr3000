@@ -108,6 +108,7 @@ while true; do
 
 	interval=$(uci -q get wifi-monitor.config.interval || echo "30")
 	radio=$(uci -q get wifi-monitor.config.radio || echo "radio0")
+	target_sta=$(uci -q get wifi-monitor.config.sta || echo "")
 	scan_disable_ap=$(uci -q get wifi-monitor.config.scan_disable_ap || echo "0")
 
 	config_load wireless
@@ -122,12 +123,27 @@ while true; do
 		continue
 	fi
 
+	# If a specific STA is configured, only monitor that one
+	if [ -n "$target_sta" ]; then
+		# Verify the configured STA actually exists
+		local found=0
+		for sta in $sta_cfg_ids; do
+			[ "$sta" = "$target_sta" ] && found=1
+		done
+		if [ "$found" -eq 0 ]; then
+			log 0 "Configured STA '$target_sta' not found among active STAs ($sta_cfg_ids). Check config."
+			sleep "$interval"
+			continue
+		fi
+		sta_cfg_ids="$target_sta"
+	fi
+
 	# Warn if multiple STAs exist on same radio (known mt76/wpa_supplicant issue)
 	sta_count=$(echo "$sta_cfg_ids" | wc -w)
 	if [ "$sta_count" -gt 1 ]; then
 		log 0 "WARNING: $sta_count STA interfaces on $radio ($sta_cfg_ids)."
 		log 0 "Multiple STAs on the same radio can cause wpa_supplicant to deinit"
-		log 0 "the entire radio, disrupting AP interfaces. Consider using only one STA."
+		log 0 "the entire radio, disrupting AP interfaces. Set 'sta' option to monitor only one."
 	fi
 
 	# Find the first connected STA; fall back to the first configured STA

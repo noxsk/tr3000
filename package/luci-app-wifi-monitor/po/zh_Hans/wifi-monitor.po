@@ -55,6 +55,15 @@ msgstr "标准"
 msgid "Verbose / Debug"
 msgstr "详细 / 调试"
 
+msgid "Monitored STA Interface"
+msgstr "监控的 STA 接口"
+
+msgid "Select which STA (Client) interface to monitor. Leave empty for auto-detect (first connected). Use this when you have multiple STA interfaces on the same radio, e.g. for mwan3 link aggregation."
+msgstr "选择要监控的 STA（客户端）接口。留空自动检测（第一个已连接的）。当同一网卡上有多个 STA 接口（如 mwan3 链路聚合）时使用此选项。"
+
+msgid "Auto-detect (first connected)"
+msgstr "自动检测（第一个已连接的）"
+
 msgid "Service Status"
 msgstr "服务状态"
 
