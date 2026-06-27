@@ -15,3 +15,40 @@ msgstr "WAN 接口"
 
 msgid "Select the WAN interface for IPv6 NAT (e.g. wan, wan6, pppoe-wan)"
 msgstr "选择用于 IPv6 NAT 的 WAN 接口（例如 wan、wan6、pppoe-wan）"
+
+msgid "LAN Prefix Mode"
+msgstr "内网前缀模式"
+
+msgid ""
+"Choose the IPv6 prefix assigned to LAN devices.<br/>"
+"<b>Random ULA</b>: Standard private fd00::/8 prefix (RFC 4193). Devices know it is not public IPv6.<br/>"
+"<b>6bone Legacy</b>: Uses the deprecated 3ffe::/16 range (RFC 3701, returned to IANA). "
+"Devices see what looks like a public prefix, encouraging IPv6-first behaviour. "
+"No real ISP uses this range — safe for NAT66.<br/>"
+"<b>Custom</b>: Specify your own prefix."
+msgstr ""
+"选择分配给内网设备的 IPv6 前缀。<br/>"
+"<b>随机 ULA</b>: 标准私有 fd00::/8 前缀 (RFC 4193)，设备能识别这不是公网 IPv6。<br/>"
+"<b>6bone 遗留</b>: 使用已废弃的 3ffe::/16 段 (RFC 3701, 已归还 IANA)。"
+"设备会认为这是公网 IPv6，从而优先走 IPv6。"
+"没有任何 ISP 还在使用这个段 — NAT66 下安全无冲突。<br/>"
+"<b>自定义</b>: 手动指定前缀。"
+
+msgid "Random ULA (fd00::/8)"
+msgstr "随机 ULA (fd00::/8)"
+
+msgid "6bone Legacy (3ffe::/16)"
+msgstr "6bone 遗留 (3ffe::/16)"
+
+msgid "Custom Prefix"
+msgstr "自定义前缀"
+
+msgid "Custom LAN Prefix"
+msgstr "自定义内网前缀"
+
+msgid ""
+"Enter a custom IPv6 prefix (e.g. fd12:3456:7890::/48). "
+"Only used when mode is \"Custom\"."
+msgstr ""
+"输入自定义 IPv6 前缀（例如 fd12:3456:7890::/48）。"
+"仅在模式设为\"自定义\"时生效。"

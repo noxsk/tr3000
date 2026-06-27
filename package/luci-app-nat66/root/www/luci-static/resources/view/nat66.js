@@ -32,6 +32,26 @@ return view.extend({
 		o.value('wan');
 		o.value('wan6');
 
+		o = s.option(form.ListValue, 'ula_mode', _('LAN Prefix Mode'),
+			_('Choose the IPv6 prefix assigned to LAN devices.<br/>'
+			+ '<b>Random ULA</b>: Standard private fd00::/8 prefix (RFC 4193). Devices know it is not public IPv6.<br/>'
+			+ '<b>6bone Legacy</b>: Uses the deprecated 3ffe::/16 range (RFC 3701, returned to IANA). '
+			+ 'Devices see what looks like a public prefix, encouraging IPv6-first behaviour. '
+			+ 'No real ISP uses this range — safe for NAT66.<br/>'
+			+ '<b>Custom</b>: Specify your own prefix.'));
+		o.rmempty = false;
+		o.default = 'random';
+		o.value('random', _('Random ULA (fd00::/8)'));
+		o.value('6bone', _('6bone Legacy (3ffe::/16)'));
+		o.value('custom', _('Custom Prefix'));
+
+		o = s.option(form.Value, 'ula_prefix', _('Custom LAN Prefix'),
+			_('Enter a custom IPv6 prefix (e.g. fd12:3456:7890::/48). Only used when mode is "Custom".'));
+		o.rmempty = true;
+		o.default = '';
+		o.datatype = 'cidr6';
+		o.depends('ula_mode', 'custom');
+
 		return m.render();
 	},
 

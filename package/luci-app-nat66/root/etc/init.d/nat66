@@ -74,6 +74,49 @@ find_wan_zone() {
 	echo "${found_zone:-wan}"
 }
 
+# Generate a random ULA prefix (fdXX:XXXX:XXXX::/48)
+gen_random_ula() {
+	local r1 r2 r3
+	r1=$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+	r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+	r3=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+	[ -z "$r1" ] && r1="a1"
+	[ -z "$r2" ] && r2="b2c3"
+	[ -z "$r3" ] && r3="d4e5"
+	echo "fd${r1}:${r2}:${r3}::/48"
+}
+
+# Generate a ULA / NAT66 prefix according to the configured mode
+gen_ula_prefix() {
+	local mode="$1"
+	local custom="$2"
+	local r1 r2
+
+	case "$mode" in
+	custom)
+		if [ -n "$custom" ]; then
+			echo "$custom"
+		else
+			gen_random_ula
+		fi
+		;;
+	6bone)
+		# 6bone (3ffe::/16) was deprecated by RFC 3701 and returned to IANA.
+		# No legitimate ISP uses this range. Using it makes client devices
+		# think they have a public IPv6 address (encouraging IPv6-first
+		# behaviour) while NAT66 handles actual connectivity.
+		r1=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+		r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
+		[ -z "$r1" ] && r1="a1b2"
+		[ -z "$r2" ] && r2="c3d4"
+		echo "3ffe:${r1}:${r2}::/48"
+		;;
+	*)
+		gen_random_ula
+		;;
+	esac
+}
+
 start_service() {
 	local enabled=$(uci -q get nat66.config.enabled || echo "0")
 	[ "$enabled" -eq 1 ] || return 0
@@ -83,17 +126,13 @@ start_service() {
 		return 0
 	fi
 
-	# 1. Ensure ULA Prefix exists on LAN (required for NAT66)
+	# 1. Ensure ULA / NAT66 Prefix exists on LAN
+	local ula_mode=$(uci -q get nat66.config.ula_mode || echo "random")
+	local ula_custom=$(uci -q get nat66.config.ula_prefix || echo "")
 	local ula=$(uci -q get network.globals.ula_prefix)
 	if [ -z "$ula" ]; then
-		local r1=$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
-		local r2=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
-		local r3=$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | od -A n -t x1 | tr -d ' ')
-		# Validate: fall back to deterministic values if urandom failed
-		[ -z "$r1" ] && r1="a1"
-		[ -z "$r2" ] && r2="b2c3"
-		[ -z "$r3" ] && r3="d4e5"
-		uci set network.globals.ula_prefix="fd${r1}:${r2}:${r3}::/48"
+		local prefix=$(gen_ula_prefix "$ula_mode" "$ula_custom")
+		uci set network.globals.ula_prefix="$prefix"
 		uci commit network
 		/etc/init.d/network reload
 	fi

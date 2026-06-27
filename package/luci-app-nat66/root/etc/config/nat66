@@ -1,3 +1,5 @@
 config nat66 'config'
 	option enabled '0'
 	option wan_dev 'wan'
+	option ula_mode 'random'
+	option ula_prefix ''
