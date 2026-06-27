@@ -100,26 +100,30 @@ return view.extend({
 		o.value('1', _('Standard'));
 		o.value('2', _('Verbose / Debug'));
 
-		// Prepend a beautiful custom status card at the top of the map
+		// Simple inline status indicator — no button-like border/padding
 		return m.render().then(function(mapNode) {
+			var dotColor   = isRunning ? '#10b981' : '#ef4444';
+			var statusText = isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)');
+
+			// Keyframe for running-dot pulse glow (scoped name avoids theme conflicts)
 			var styleNode = E('style', {},
-				'@keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
-				'.monitor-status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }' +
-				'.monitor-status-badge.running { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }' +
-				'.monitor-status-badge.stopped { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }' +
-				'.monitor-dot { width: 8px; height: 8px; border-radius: 50%; }' +
-				'.monitor-dot.running { background-color: #10b981; animation: pulse 2s infinite; }' +
-				'.monitor-dot.stopped { background-color: #ef4444; }'
+				'@keyframes wifimon-pulse {' +
+				'0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }' +
+				'50%      { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }' +
+				'}'
 			);
 
 			var statusNode = E('div', { 'class': 'cbi-section' }, [
-				E('legend', {}, _('Service Status')),
 				E('div', { 'class': 'cbi-value' }, [
 					E('label', { 'class': 'cbi-value-title' }, _('Running State')),
 					E('div', { 'class': 'cbi-value-field' }, [
-						E('div', { 'class': 'monitor-status-badge ' + (isRunning ? 'running' : 'stopped') }, [
-							E('span', { 'class': 'monitor-dot ' + (isRunning ? 'running' : 'stopped') }),
-							E('span', {}, isRunning ? _('Active (Monitoring)') : _('Inactive (Stopped)'))
+						E('span', { 'style': 'font-weight: 500;' }, [
+							E('span', {
+								'style': 'display: inline-block; width: 10px; height: 10px; border-radius: 50%;'
+								       + ' background-color: ' + dotColor + '; margin-right: 6px; vertical-align: middle;'
+								       + (isRunning ? ' animation: wifimon-pulse 2s ease-in-out infinite;' : '')
+							}),
+							statusText
 						])
 					])
 				])

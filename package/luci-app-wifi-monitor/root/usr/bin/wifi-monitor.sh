@@ -6,6 +6,22 @@
 LAST_RELOAD=0
 RELOAD_COOLDOWN=60
 
+# Trap-based cleanup: if script crashes while APs are temporarily disabled
+# for scanning, restore them on exit.
+AP_DISABLED_TEMP=0
+ap_cfg_ids_global=""
+
+cleanup_aps() {
+	if [ "$AP_DISABLED_TEMP" -eq 1 ] && [ -n "$ap_cfg_ids_global" ]; then
+		log 1 "Trap: restoring AP interfaces that were temporarily disabled..."
+		for ap_cfg in $ap_cfg_ids_global; do
+			uci set wireless."$ap_cfg".disabled='0'
+		done
+		uci commit wireless
+	fi
+}
+trap cleanup_aps EXIT
+
 log() {
 	local level="$1"
 	local msg="$2"
@@ -58,18 +74,18 @@ find_ap_ifaces() {
 	fi
 }
 
-# Get dynamic OS interface name (e.g. wlan0-1) for a UCI wireless section using ubus
+# Get dynamic OS interface name (e.g. wlan0-1) for a UCI wireless section using cached ubus status
 get_ifname() {
 	local radio="$1"
 	local section="$2"
-	ubus call network.wireless status 2>/dev/null | jsonfilter -e "@['$radio'].interfaces[@.section='$section'].ifname" 2>/dev/null
+	echo "$WIRELESS_STATUS" | jsonfilter -e "@['$radio'].interfaces[@.section='$section'].ifname" 2>/dev/null
 }
 
-# Check if a wireless interface is up according to netifd
+# Check if a wireless interface is up according to netifd (using cached ubus status)
 is_iface_up() {
 	local radio="$1"
 	local section="$2"
-	local state=$(ubus call network.wireless status 2>/dev/null | jsonfilter -e "@['$radio'].interfaces[@.section='$section'].up" 2>/dev/null)
+	local state=$(echo "$WIRELESS_STATUS" | jsonfilter -e "@['$radio'].interfaces[@.section='$section'].up" 2>/dev/null)
 	[ "$state" = "true" ]
 }
 
@@ -107,6 +123,9 @@ while true; do
 	fi
 
 	interval=$(uci -q get wifi-monitor.config.interval || echo "30")
+	# Sanity bounds: minimum 5s to prevent tight loop, maximum 3600s (1 hour)
+	[ "$interval" -lt 5 ] 2>/dev/null && interval=5
+	[ "$interval" -gt 3600 ] 2>/dev/null && interval=3600
 	radio=$(uci -q get wifi-monitor.config.radio || echo "radio0")
 	target_sta=$(uci -q get wifi-monitor.config.sta || echo "")
 	scan_disable_ap=$(uci -q get wifi-monitor.config.scan_disable_ap || echo "0")
@@ -117,22 +136,33 @@ while true; do
 	config_foreach find_sta_ifaces wifi-iface
 	config_foreach find_ap_ifaces wifi-iface
 
+	# Cache wireless status once per iteration to reduce ubus calls (O(N) -> O(1))
+	WIRELESS_STATUS=$(ubus call network.wireless status 2>/dev/null)
+	if [ -z "$WIRELESS_STATUS" ]; then
+		log 2 "ubus network.wireless.status returned empty (ubusd not ready?). Retrying in ${interval}s..."
+		sleep "$interval" &
+		wait $!
+		continue
+	fi
+
 	if [ -z "$sta_cfg_ids" ]; then
 		log 1 "No active STA interface configured on $radio. Sleeping..."
-		sleep "$interval"
+		sleep "$interval" &
+		wait $!
 		continue
 	fi
 
 	# If a specific STA is configured, only monitor that one
 	if [ -n "$target_sta" ]; then
 		# Verify the configured STA actually exists
-		local found=0
+		found=0
 		for sta in $sta_cfg_ids; do
 			[ "$sta" = "$target_sta" ] && found=1
 		done
 		if [ "$found" -eq 0 ]; then
 			log 0 "Configured STA '$target_sta' not found among active STAs ($sta_cfg_ids). Check config."
-			sleep "$interval"
+			sleep "$interval" &
+			wait $!
 			continue
 		fi
 		sta_cfg_ids="$target_sta"
@@ -150,7 +180,7 @@ while true; do
 	primary_sta=""
 	primary_ifname=""
 	for sta in $sta_cfg_ids; do
-		local ifname=$(get_ifname "$radio" "$sta")
+		ifname=$(get_ifname "$radio" "$sta")
 		if [ -n "$ifname" ] && is_sta_connected "$ifname"; then
 			primary_sta="$sta"
 			primary_ifname="$ifname"
@@ -170,7 +200,8 @@ while true; do
 
 	if [ -z "$primary_ifname" ]; then
 		log 2 "No STA interface created yet for any configured STA on $radio. Waiting..."
-		sleep "$interval"
+		sleep "$interval" &
+		wait $!
 		continue
 	fi
 
@@ -187,7 +218,7 @@ while true; do
 		if ! all_ap_up; then
 			log 1 "One or more AP interfaces are DOWN on $radio while STA $primary_ifname is connected."
 			log 1 "STA is on channel $actual_chan. Syncing UCI and reloading..."
-			if [ -n "$actual_chan" ]; then
+			if [ -n "$actual_chan" ] && [ "$configured_chan" != "auto" ] && [ "$configured_chan" != "$actual_chan" ]; then
 				uci set wireless."$radio".channel="$actual_chan"
 				uci commit wireless
 			fi
@@ -216,6 +247,9 @@ while true; do
 		# 1. Optionally disable local AP for clean scanning
 		if [ "$scan_disable_ap" -eq 1 ] && [ -n "$ap_cfg_ids" ]; then
 			log 1 "Temporarily disabling AP interfaces for clean scanning..."
+			# Set trap flags so EXIT trap can restore APs if we crash
+			AP_DISABLED_TEMP=1
+			ap_cfg_ids_global="$ap_cfg_ids"
 			for ap_cfg in $ap_cfg_ids; do
 				uci set wireless."$ap_cfg".disabled='1'
 			done
@@ -268,6 +302,8 @@ while true; do
 				uci set wireless."$ap_cfg".disabled='0'
 			done
 			uci commit wireless
+			# Clear trap flag: APs are restored, trap is now a no-op
+			AP_DISABLED_TEMP=0
 		fi
 
 		if [ -n "$target_chan" ]; then
@@ -289,5 +325,6 @@ while true; do
 		fi
 	fi
 
-	sleep "$interval"
+	sleep "$interval" &
+	wait $!
 done
