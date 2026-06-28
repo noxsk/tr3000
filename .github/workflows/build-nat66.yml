@@ -42,12 +42,10 @@ jobs:
     - name: Setup config (x86_64 — same arch as runner)
       run: |
         cd openwrt
-        cat > .config << 'ENDCONFIG'
-CONFIG_TARGET_x86=y
-CONFIG_TARGET_x86_64=y
-CONFIG_TARGET_x86_64_DEVICE_generic=y
-CONFIG_PACKAGE_luci-app-nat66=y
-ENDCONFIG
+        echo "CONFIG_TARGET_x86=y" > .config
+        echo "CONFIG_TARGET_x86_64=y" >> .config
+        echo "CONFIG_TARGET_x86_64_DEVICE_generic=y" >> .config
+        echo "CONFIG_PACKAGE_luci-app-nat66=y" >> .config
         make defconfig
 
     - name: Build tools + toolchain
