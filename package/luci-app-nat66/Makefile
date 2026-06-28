@@ -14,7 +14,7 @@ define Package/luci-app-nat66
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
   TITLE:=LuCI support for NAT66 (IPv6 NAT) configuration
-  DEPENDS:=
+  DEPENDS:=+luci-base
   PKGARCH:=all
 endef
 
@@ -37,8 +37,8 @@ define Package/luci-app-nat66/install
 	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-nat66.json $(1)/usr/share/luci/menu.d/luci-app-nat66.json
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-nat66.json $(1)/usr/share/rpcd/acl.d/luci-app-nat66.json
 	$(INSTALL_DATA) ./root/www/luci-static/resources/view/nat66.js $(1)/www/luci-static/resources/view/nat66.js
-	po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh-cn.lmo
-	po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh-hans.lmo
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh-cn.lmo
+	$(STAGING_DIR_HOST)/bin/po2lmo ./po/zh_Hans/nat66.po $(1)/usr/lib/lua/luci/i18n/nat66.zh-hans.lmo
 endef
 
 $(eval $(call BuildPackage,luci-app-nat66))

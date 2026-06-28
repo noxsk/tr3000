@@ -54,6 +54,11 @@ jobs:
         make tools/install -j$(nproc) V=s
         make toolchain/install -j$(nproc) V=s
 
+    - name: Build luci-base (provides po2lmo)
+      run: |
+        cd openwrt
+        make package/luci-base/host/compile V=s -j1
+
     - name: Compile luci-app-nat66 only
       run: |
         cd openwrt
