@@ -1,6 +1,9 @@
 #
-# Workflow: 仅编译 luci-app-nat66 插件
+# Workflow: 仅编译 luci-app-nat66 插件 (PKGARCH:=all, 纯 LuCI)
 # 触发: 手动 或 push 到 package/luci-app-nat66/**
+#
+# nat66 无原生代码，但需要 po2lmo 命令（来自 luci-base）。
+# 使用 x86_64 目标避免交叉编译工具链问题。
 #
 
 name: Build luci-app-nat66
@@ -10,10 +13,6 @@ on:
   push:
     paths:
       - 'package/luci-app-nat66/**'
-
-env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
 
 jobs:
   build:
@@ -31,7 +30,7 @@ jobs:
 
     - name: Clone OpenWrt source
       run: |
-        git clone $REPO_URL -b $REPO_BRANCH --depth=1 openwrt
+        git clone https://github.com/coolsnowwolf/lede -b master --depth=1 openwrt
         cp -r "$GITHUB_WORKSPACE/package/luci-app-nat66" openwrt/package/
 
     - name: Update & install feeds
@@ -40,17 +39,27 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
-    - name: Setup config
+    - name: Setup config (x86_64 — same arch as runner)
       run: |
         cd openwrt
-        # Use the full project config as base — guarantees correct target/Kernel
-        cp "$GITHUB_WORKSPACE/TR3000V1_MOD.config" .config
+        cat > .config << 'ENDCONFIG'
+CONFIG_TARGET_x86=y
+CONFIG_TARGET_x86_64=y
+CONFIG_TARGET_x86_64_DEVICE_generic=y
+CONFIG_PACKAGE_luci-app-nat66=y
+ENDCONFIG
         make defconfig
 
-    - name: Compile luci-app-nat66
+    - name: Build tools + toolchain
       run: |
         cd openwrt
-        make package/luci-app-nat66/compile V=s -j$(nproc)
+        make tools/install -j$(nproc) V=s
+        make toolchain/install -j$(nproc) V=s
+
+    - name: Compile luci-app-nat66 only
+      run: |
+        cd openwrt
+        make package/luci-app-nat66/compile V=s -j1
 
     - name: Upload .ipk artifact
       uses: actions/upload-artifact@v4
