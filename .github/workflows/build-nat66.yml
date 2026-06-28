@@ -1,6 +1,6 @@
 #
 # Workflow: 仅编译 luci-app-nat66 插件 (PKGARCH:=all, 纯 LuCI)
-# 触发: 手动 或 push 到 package/luci-app-nat66/**
+# 触发: 仅手动
 #
 # nat66 无原生代码，但需要 po2lmo 命令（来自 luci-base）。
 # 使用 x86_64 目标避免交叉编译工具链问题。
@@ -10,9 +10,6 @@ name: Build luci-app-nat66
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'package/luci-app-nat66/**'
 
 jobs:
   build:
@@ -20,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v5
 
     - name: Install build dependencies
       run: |
@@ -65,8 +62,8 @@ jobs:
         make package/luci-app-nat66/compile V=s -j1
 
     - name: Upload .ipk artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: luci-app-nat66
-        path: openwrt/bin/packages/*/base/luci-app-nat66*.ipk
+        path: openwrt/bin/packages/**/luci-app-nat66*.ipk
         if-no-files-found: error

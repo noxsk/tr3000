@@ -35,7 +35,7 @@ jobs:
 
     - name: Compare Commit Hash
       id: cacheHash
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: .commitHash
         key: commitHash_${{ steps.getHash.outputs.commitHash }}
@@ -44,13 +44,6 @@ jobs:
       if: steps.cacheHash.outputs.cache-hit != 'true'
       run: |
         echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash
-
-    - name: Trigger build
-      if: steps.cacheHash.outputs.cache-hit != 'true'
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        token: ${{ github.token }}
-        event-type: Source Code Update
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
