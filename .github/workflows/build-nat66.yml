@@ -40,15 +40,11 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
-    - name: Setup minimal config
+    - name: Setup config
       run: |
         cd openwrt
-        cat > .config << 'ENDCONFIG'
-CONFIG_TARGET_mediatek=y
-CONFIG_TARGET_mediatek_filogic=y
-CONFIG_TARGET_mediatek_filogic_DEVICE_cudy_tr3000-v1-ubootmod=y
-CONFIG_PACKAGE_luci-app-nat66=y
-ENDCONFIG
+        # Use the full project config as base — guarantees correct target/Kernel
+        cp "$GITHUB_WORKSPACE/TR3000V1_MOD.config" .config
         make defconfig
 
     - name: Compile luci-app-nat66
