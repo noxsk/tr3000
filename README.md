@@ -1,14 +1,12 @@
-# Cudy TR3000 V1 OpenWrt Build (noxsk/tr3000)
+**English** | [中文](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
 
-[![LICENSE](https://img.shields.io/github/license/noxsk/tr3000.svg?style=flat-square&label=LICENSE)](https://github.com/noxsk/tr3000/blob/main/LICENSE)
-![GitHub Stars](https://img.shields.io/github/stars/noxsk/tr3000.svg?style=flat-square&label=Stars&logo=github)
-![GitHub Forks](https://img.shields.io/github/forks/noxsk/tr3000.svg?style=flat-square&label=Forks&logo=github)
+# Actions-OpenWrt
 
-> [!NOTE]
-> 本项目为自用仓库，源码来自互联网（基于 Lean 的 OpenWrt 源码及 P3TERX 的 Actions-OpenWrt 编译模板），仅用于存档与 GitHub Actions 固件云端云编译。
+[![LICENSE](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square&label=LICENSE)](https://github.com/P3TERX/Actions-OpenWrt/blob/master/LICENSE)
+![GitHub Stars](https://img.shields.io/github/stars/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Stars&logo=github)
+![GitHub Forks](https://img.shields.io/github/forks/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=Forks&logo=github)
 
----
-
+A template for building OpenWrt with GitHub Actions
 
 ## Usage
 
