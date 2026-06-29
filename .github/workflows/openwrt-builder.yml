@@ -93,6 +93,12 @@ jobs:
       run: |
         cd openwrt
         make defconfig
+        expected_device='CONFIG_TARGET_mediatek_filogic_DEVICE_cudy_tr3000-mod=y'
+        if ! grep -qx "$expected_device" .config; then
+          echo "::error::Expected the 128MB Cudy TR3000 U-Boot mod profile, but make defconfig selected a different device"
+          grep '^CONFIG_TARGET.*DEVICE.*=y' .config || true
+          exit 1
+        fi
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
